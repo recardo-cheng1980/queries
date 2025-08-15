@@ -1,0 +1,12 @@
+{
+  "session_id": "a2a05f2b-9a7d-4686-9da0-1e33f6927206",
+  "transcript_path": "/Users/recardo/.claude/projects/-Users-recardo-ai-queries/a2a05f2b-9a7d-4686-9da0-1e33f6927206.jsonl",
+  "cwd": "/Users/recardo/ai/queries",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/Users/recardo/ai/queries/src/queries/order_queries.ts",
+    "old_string": "export async function getPendingOrders(db: Database): Promise<any[]> {\n  const query = `\n    SELECT \n        o.order_id,\n        o.order_date,\n        o.total_amount,\n        c.first_name || ' ' || c.last_name as customer_name,\n        c.phone,\n        julianday('now') - julianday(o.order_date) as days_since_created\n    FROM orders o\n    JOIN customers c ON o.customer_id = c.customer_id\n    WHERE o.status = 'pending'\n    ORDER BY o.order_date\n    `;\n\n  const rows = await db.all(query, []);\n  return rows;\n}",
+    "new_string": "export async function getPendingOrders(db: Database, minDays?: number): Promise<any[]> {\n  let whereClause = \"WHERE o.status = 'pending'\";\n  const params: any[] = [];\n  \n  if (minDays !== undefined) {\n    whereClause += \" AND (julianday('now') - julianday(o.created_at)) > ?\";\n    params.push(minDays);\n  }\n\n  const query = `\n    SELECT \n        o.id as order_id,\n        o.order_number,\n        o.created_at as order_date,\n        o.total_amount,\n        c.first_name || ' ' || c.last_name as customer_name,\n        c.phone,\n        CAST((julianday('now') - julianday(o.created_at)) AS INTEGER) as days_since_created\n    FROM orders o\n    JOIN customers c ON o.customer_id = c.id\n    ${whereClause}\n    ORDER BY o.created_at\n    `;\n\n  const rows = await db.all(query, params);\n  return rows;\n}"
+  }
+}
